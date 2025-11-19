@@ -313,7 +313,9 @@ a {
 
 .home-card {
   width: 100%;
+  padding-top: 20px;
   max-width: 100%;
+  overflow: hidden;
 }
 
 
@@ -326,13 +328,14 @@ a {
 }
 
 /* PREVIEW IMAGE ON HOMEPAGE */
+
+
 .home-preview-img {
   width: 100%;
-  max-width: 220px;
-  height: auto;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  object-fit: cover;
+  height: 350px;     /* <- finally makes the image tall */
+  object-fit: cover; /* <- shows full car shape clean */
+  border-radius: 12px 12px 0 0;
+  display: block;
 }
 
 /* LIGHT + DARK THEME VARIABLES */
@@ -408,8 +411,246 @@ body {
   background: var(--jdm-purple);
 }
 
+.tag-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: black;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin: 12px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Tag color stays readable */
 .light-mode .tag-badge {
   color: white;
   background: var(--jdm-blue);
 }
+
+/* ------------------------------------------------------------
+   IMPROVED LIGHT MODE
+------------------------------------------------------------ */
+
+.light-mode {
+  --bg-dark: #f2f3f7;                     /* soft neutral */
+  --bg-box: #ffffff;                      /* clean white cards */
+  --text-light: #222;                     /* readable dark */
+  --text-dim: #666;
+  --border-neon: rgba(123, 47, 255, 0.25);
+  --card-glass: rgba(0, 0, 0, 0.03);
+
+  --glow-primary: 0 0 6px rgba(123, 47, 255, 0.22);
+  --glow-blue: 0 0 5px rgba(47, 212, 255, 0.25);
+}
+
+/* Post card fix in light mode */
+.light-mode .post-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(123, 47, 255, 0.25);
+}
+
+/* Header gradient visible */
+.light-mode .header-title {
+  background: linear-gradient(90deg, #7a35ff, #1598ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Inputs look clean */
+.light-mode input,
+.light-mode select {
+  background: #ffffff !important;
+  border: 1px solid rgba(123, 47, 255, 0.3);
+  color: #222;
+}
+
+/* Mode toggle in light mode */
+.light-mode .mode-toggle {
+  background: #ffffff;
+  color: #222;
+  border: 1px solid rgba(123, 47, 255, 0.3);
+}
+
+/* Tag color remains readable */
+.light-mode .tag-badge {
+  background: #2fd4ff;
+  color: #000;
+}
+
+.form-container {
+  margin-top: 40px;
+}
+
+.post-card-img {
+  width: 100%;
+  max-width: 350px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+
+/* Light mode improvements (no washed out text) */
+[data-theme="light"] {
+  --bg-dark: #f5f5f5;
+  --text-light: #111;
+  --text-dim: #444;
+  --bg-box: rgba(255, 255, 255, 0.8);
+  --border-neon: rgba(140, 60, 255, 0.35);
+}
+
+/* ---------------------- */
+/* 🔥 POST PAGE CONTAINER */
+/* ---------------------- */
+
+.post-page-box {
+  background: var(--card-bg);
+  padding: 32px;
+  border-radius: 22px;
+  box-shadow: 0 0 25px rgba(132, 0, 255, 0.2);
+  margin-top: 40px;
+  margin-bottom: 60px;
+  border: 1px solid rgba(150, 80, 255, 0.4);
+  color: var(--text-primary);
+}
+
+/* ---------------------- */
+/* 🔥 POST TITLE */
+/* ---------------------- */
+
+.post-title {
+  font-size: 38px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+/* ---------------------- */
+/* 🔥 POST META INFO */
+/* ---------------------- */
+.post-meta {
+  font-size: 18px;
+  opacity: 0.8;
+  margin-bottom: 18px;
+}
+
+/* ---------------------- */
+/* 🔥 TAG BADGE */
+/* ---------------------- */
+
+.post-tag {
+  display: inline-block;
+  background: var(--accent);
+  color: black;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+/* ---------------------- */
+/* 🔥 BUTTON ROW */
+/* ---------------------- */
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+  margin: 18px 0 25px;
+}
+
+.post-actions button {
+  font-size: 17px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.post-actions .upvote-btn {
+  background: #6f2dff;
+  color: white;
+}
+
+.post-actions .upvote-btn:hover {
+  background: #8c47ff;
+}
+
+.post-actions .edit-btn {
+  background: #7749f8;
+  color: white;
+}
+
+.post-actions .edit-btn:hover {
+  background: #9264ff;
+}
+
+.post-actions .delete-btn {
+  background: #ff4d4d;
+  color: white;
+}
+
+.post-actions .delete-btn:hover {
+  background: #ff6666;
+}
+
+/* ---------------------- */
+/* 🔥 COMMENTS SECTION */
+/* ---------------------- */
+
+.comments-title {
+  font-size: 30px;
+  margin-top: 20px;
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.no-comments {
+  opacity: 0.7;
+  margin-bottom: 18px;
+}
+
+/* COMMENT INPUT AREA */
+.comment-box {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  margin-right: 14px;
+}
+
+.comment-box:focus {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 10px rgba(140, 80, 255, 0.5);
+}
+
+/* COMMENT SUBMIT BUTTON */
+.comment-submit {
+  background: #8c47ff;
+  padding: 14px 26px;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.comment-submit:hover {
+  background: #a067ff;
+}
+
+/* Align comment form */
+.comment-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+

@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
 
-  // toggle modes
+  // Toggle dark/light mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.setAttribute("data-theme", "dark");
@@ -95,10 +95,7 @@ export default function Home() {
         <Link key={post.id} to={`/post/${post.id}`}>
           <div className="post-card home-card">
 
-            {/* TAG */}
-            {post.tag && <div className="tag-badge">{post.tag}</div>}
-
-            {/* FIXED IMAGE PREVIEW */}
+            {/* IMAGE AT TOP */}
             {post.image_url && (
               <img
                 src={post.image_url}
@@ -106,6 +103,9 @@ export default function Home() {
                 className="home-preview-img"
               />
             )}
+
+            {/* TAG */}
+            {post.tag && <div className="tag-badge">{post.tag}</div>}
 
             <h3>{post.title}</h3>
             <p className="meta">
