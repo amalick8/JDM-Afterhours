@@ -9,8 +9,11 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
 
   async function fetchPosts() {
-    let query = supabase.from("posts").select().order(orderBy, { ascending: false });
-    
+    let query = supabase
+      .from("posts")
+      .select()
+      .order(orderBy, { ascending: false });
+
     if (searchTerm.trim() !== "") {
       query = query.ilike("title", `%${searchTerm}%`);
     }
@@ -24,21 +27,38 @@ export default function Home() {
   }, [orderBy, searchTerm]);
 
   return (
-    <div className="container">
-      <h1>HobbyHub</h1>
-      <a href="/create" className="btn">Create New Post</a>
+    <div className="page-wrapper">
+      <div className="container fade-in">
 
-      <SortAndSearchBar
-        orderBy={orderBy}
-        setOrderBy={setOrderBy}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+        {/* Centered Header */}
+        <div className="header" style={{ textAlign: "center" }}>
+          <h1>HobbyHub</h1>
+        </div>
 
-      <div className="posts-list">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
+        {/* Centered Create Button */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+          <a href="/create" className="btn">Create New Post</a>
+        </div>
+
+        {/* Centered Sort + Search */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "25px" }}>
+          <SortAndSearchBar
+            orderBy={orderBy}
+            setOrderBy={setOrderBy}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+        </div>
+
+        {/* Fully Centered Posts List */}
+        <div className="posts-list" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          {posts.length === 0 ? (
+            <p style={{ marginTop: "20px", opacity: 0.7 }}>No posts yet — be the first!</p>
+          ) : (
+            posts.map((post) => <PostCard key={post.id} post={post} />)
+          )}
+        </div>
+
       </div>
     </div>
   );

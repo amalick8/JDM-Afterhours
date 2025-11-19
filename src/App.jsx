@@ -1,12 +1,45 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
 import PostPage from "./pages/PostPage";
 import EditPost from "./pages/EditPost";
+import "./styles/styles.css";
 
 export default function App() {
+  const [theme, setTheme] = useState("blue");
+  const [mode, setMode] = useState("dark");
+
+  // Apply theme + mode to <body>
+  useEffect(() => {
+    document.body.setAttribute("data-theme", theme);
+    document.body.setAttribute("data-mode", mode);
+  }, [theme, mode]);
+
   return (
     <BrowserRouter>
+      <div className="top-controls">
+        {/* THEME SELECTOR */}
+        <select
+          className="theme-selector"
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+        >
+          <option value="blue">Blue</option>
+          <option value="purple">Purple</option>
+          <option value="red">Red</option>
+          <option value="green">Green</option>
+        </select>
+
+        {/* DARK/LIGHT TOGGLE */}
+        <button
+          className="mode-toggle"
+          onClick={() => setMode(mode === "dark" ? "light" : "dark")}
+        >
+          {mode === "dark" ? "🌞 Light Mode" : "🌙 Dark Mode"}
+        </button>
+      </div>
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreatePost />} />
