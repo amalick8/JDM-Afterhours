@@ -8,12 +8,12 @@ The app is powered by **React + Supabase**, and styled with a clean neon theme i
 ---
 
 ## 📸 GIF Walkthrough  
-![Demo](./demo.gif)
+![Gif](./demo.gif)
 
 ---
 
 ## 🌐 Live Demo  
-(working on this right now)
+![Demo](https://jdmafterhours.netlify.app/)
 
 
 ---
