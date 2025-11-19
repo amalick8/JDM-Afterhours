@@ -1,65 +1,88 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import PostCard from "../components/PostCard";
-import SortAndSearchBar from "../components/SortAndSearchBar";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
-  const [orderBy, setOrderBy] = useState("created_at");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [filterTag, setFilterTag] = useState("all");
+  const [loading, setLoading] = useState(true);
 
-  async function fetchPosts() {
+  async function loadPosts() {
+    setLoading(true);
+
     let query = supabase
       .from("posts")
-      .select()
-      .order(orderBy, { ascending: false });
+      .select("*")
+      .order(sortBy, { ascending: false });
 
-    if (searchTerm.trim() !== "") {
-      query = query.ilike("title", `%${searchTerm}%`);
+    if (search.trim() !== "") {
+      query = query.ilike("title", `%${search}%`);
     }
 
-    const { data } = await query;
-    setPosts(data || []);
+    if (filterTag !== "all") {
+      query = query.eq("tag", filterTag);
+    }
+
+    const { data, error } = await query;
+
+    if (!error) setPosts(data);
+    setLoading(false);
   }
 
   useEffect(() => {
-    fetchPosts();
-  }, [orderBy, searchTerm]);
+    loadPosts();
+  }, [sortBy, search, filterTag]);
 
   return (
-    <div className="page-wrapper">
+    <div className="page-box">
 
-      {/* EVERYTHING CENTERED */}
-      <div className="home-container">
+      <h1 className="header-title">JDM Afterhours</h1>
+      <p className="header-sub">A Midnight Community for JDM Car Lovers</p>
 
-        {/* Header */}
-        <h1 className="main-title">HobbyHub</h1>
-
-        {/* Create Post button */}
-        <a href="/create" className="btn create-btn">Create New Post</a>
-
-        {/* Sort/Search */}
-        <div className="sort-wrapper">
-          <SortAndSearchBar
-            orderBy={orderBy}
-            setOrderBy={setOrderBy}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-          />
-        </div>
-
-        {/* Posts */}
-        <div className="posts-wrapper">
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} />
-          ))}
-
-          {posts.length === 0 && (
-            <p className="empty-msg">No posts yet. Create one!</p>
-          )}
-        </div>
-
+      <div style={{ textAlign: "center", marginBottom: 25 }}>
+        <Link to="/create" className="btn">Create New Post</Link>
       </div>
+
+      {/* SEARCH + SORT + TAG FILTERS */}
+      <div className="sort-search">
+        <input
+          placeholder="Search posts..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="created_at">Newest</option>
+          <option value="upvotes">Most Upvoted</option>
+        </select>
+
+        <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}>
+          <option value="all">All Tags</option>
+          <option value="Build">Build</option>
+          <option value="Review">Review</option>
+          <option value="Question">Question</option>
+          <option value="For Sale">For Sale</option>
+          <option value="Spotting">Spotting</option>
+        </select>
+      </div>
+
+      {/* LOADING */}
+      {loading && <p className="loading">Loading...</p>}
+
+      {/* POST CARDS */}
+      {posts.map((post) => (
+        <Link key={post.id} to={`/post/${post.id}`}>
+          <div className="post-card">
+            {post.tag && <div className="tag-badge">{post.tag}</div>}
+            <h3>{post.title}</h3>
+            <p className="meta">Posted: {new Date(post.created_at).toLocaleString()}</p>
+            <p className="upvotes">🔥 {post.upvotes} upvotes</p>
+          </div>
+        </Link>
+      ))}
+
     </div>
   );
 }

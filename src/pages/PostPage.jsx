@@ -1,47 +1,36 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 export default function PostPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [post, setPost] = useState(null);
+  const [newComment, setNewComment] = useState("");
 
-  const [post, setPost] = useState({});
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
+  // --------------------------
+  // FETCH POST ON LOAD
+  // --------------------------
+  async function fetchPost() {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  // Fetch post
+    if (error) console.error("Fetch error:", error);
+    else setPost(data);
+  }
+
   useEffect(() => {
-    async function fetchPost() {
-      const { data, error } = await supabase
-        .from("posts")
-        .select()
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.log(error);
-        return;
-      }
-
-      setPost(data);
-    }
-
-    async function fetchComments() {
-      const { data } = await supabase
-        .from("comments")
-        .select()
-        .eq("post_id", id)
-        .order("created_at", { ascending: true });
-
-      setComments(data || []);
-    }
-
     fetchPost();
-    fetchComments();
-  }, [id]);
+  }, []);
 
-  // Upvote handler
+  if (!post) return <p>Loading...</p>;
+
+  // --------------------------
+  // HANDLE UPVOTE
+  // --------------------------
   async function handleUpvote() {
     const { data, error } = await supabase
       .from("posts")
@@ -53,92 +42,130 @@ export default function PostPage() {
     if (!error) setPost(data);
   }
 
-  // Delete handler
-  async function handleDelete() {
-    await supabase.from("posts").delete().eq("id", id);
-    navigate("/");
-  }
+  // --------------------------
+  // ADD COMMENT
+  // --------------------------
+  async function handleAddComment() {
+    if (!newComment.trim()) return;
 
-  // Add comment
-  async function handleCommentSubmit() {
-    if (!comment.trim()) return;
+    const updatedComments = [...post.comments, newComment];
 
     const { data, error } = await supabase
-      .from("comments")
-      .insert({
-        post_id: id,
-        text: comment,
-      })
+      .from("posts")
+      .update({ comments: updatedComments })
+      .eq("id", id)
       .select()
       .single();
 
     if (!error) {
-      setComments([...comments, data]);
-      setComment("");
+      setPost(data);
+      setNewComment("");
     }
   }
 
-  // ------------------------------------------------------------------
-  //                          BEAUTIFUL RETURN
-  // ------------------------------------------------------------------
+  // --------------------------
+  // DELETE COMMENT
+  // --------------------------
+  async function handleDeleteComment(index) {
+    const updated = [...post.comments];
+    updated.splice(index, 1);
+
+    const { data, error } = await supabase
+      .from("posts")
+      .update({ comments: updated })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (!error) setPost(data);
+  }
+
+  // --------------------------
+  // DELETE POST
+  // --------------------------
+  async function handleDeletePost() {
+    const ok = confirm("Are you sure you want to delete this post?");
+    if (!ok) return;
+
+    await supabase.from("posts").delete().eq("id", id);
+    navigate("/");
+  }
 
   return (
-    <div className="post-page-wrapper">
-
+    <div className="post-page-wrapper fade-in">
       <div className="post-page-card">
 
-        <h1 className="post-title">{post.title}</h1>
+        {/* TITLE */}
+        <h1 className="post-page-title">{post.title}</h1>
 
+        {/* IMAGE (FULLY FIXED) */}
         {post.image_url && (
           <img
             src={post.image_url}
             alt={post.title}
-            className="post-image"
+            className="post-page-img"
           />
         )}
 
-        <p className="post-description">{post.content}</p>
+        {/* CONTENT */}
+        {post.content && (
+          <p className="post-page-content">{post.content}</p>
+        )}
 
-        <p>
-          <strong>Upvotes:</strong> {post.upvotes}
+        <p className="post-meta">
+          Created: {new Date(post.created_at).toLocaleString()}
         </p>
 
-        <div className="post-actions">
-          <button className="action-btn action-upvote" onClick={handleUpvote}>
+        <p className="post-meta">Upvotes: {post.upvotes}</p>
+
+        {/* BUTTONS */}
+        <div className="post-page-buttons">
+          <button onClick={handleUpvote} className="btn upvote-btn">
             Upvote
           </button>
-          <button
-            className="action-btn action-edit"
-            onClick={() => navigate(`/edit/${id}`)}
-          >
-            Edit
-          </button>
-          <button className="action-btn action-delete" onClick={handleDelete}>
+
+          <Link to={`/edit/${post.id}`}>
+            <button className="btn edit-btn">Edit</button>
+          </Link>
+
+          <button onClick={handleDeletePost} className="btn delete-btn">
             Delete
           </button>
         </div>
 
-        <h2 className="comments-header">Comments</h2>
+        {/* COMMENTS SECTION */}
+        <h2 className="comments-title">Comments</h2>
 
-        <div className="comment-input-section">
+        <div className="comment-input-row">
           <input
             placeholder="Add a comment..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="comment-input"
           />
-          <button className="comment-add-btn" onClick={handleCommentSubmit}>
+          <button onClick={handleAddComment} className="btn add-comment-btn">
             Add Comment
           </button>
         </div>
 
-        {comments.map((c) => (
-          <div key={c.id} className="comment-card">
-            <p className="comment-text">{c.text}</p>
-          </div>
-        ))}
+        {/* COMMENTS LIST */}
+        <div className="comments-list">
+          {post.comments.length === 0 && <p>No comments yet.</p>}
+
+          {post.comments.map((c, index) => (
+            <div key={index} className="comment-card">
+              <p>{c}</p>
+              <button
+                className="btn delete-comment-btn"
+                onClick={() => handleDeleteComment(index)}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
 
       </div>
-
     </div>
   );
 }

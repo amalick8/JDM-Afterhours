@@ -5,37 +5,32 @@ export default function CreatePost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [tag, setTag] = useState("");
+  const [ownerKey, setOwnerKey] = useState("");
 
-  async function createPost(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
-    console.log("Submitting post:", { title, content, imageUrl });
-
-    const { data, error } = await supabase.from("posts").insert({
-      title: title,
-      content: content,
+    const { error } = await supabase.from("posts").insert({
+      title,
+      content,
       image_url: imageUrl,
-      // upvotes and comments use default values so no need to send them
+      tag,
+      owner_key: ownerKey,
+      upvotes: 0,
+      comments: [],
     });
 
-    console.log("INSERT RESULT:", { data, error });
-
-    // Error handling
-    if (error) {
-      alert("Supabase Error: " + error.message);
-      console.error("Supabase Insert Error:", error);
-      return;
-    }
-
-    // If successful → redirect
-    window.location.href = "/";
+    if (error) alert(error.message);
+    else window.location.href = "/";
   }
 
   return (
     <div className="form-container">
-      <h2>Create New Post</h2>
+      <h2>Create a New Post</h2>
 
-      <form onSubmit={createPost} className="form">
+      <form onSubmit={handleSubmit}>
+
         <input
           required
           placeholder="Post Title"
@@ -44,7 +39,7 @@ export default function CreatePost() {
         />
 
         <textarea
-          placeholder="Content (optional)"
+          placeholder="Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -55,7 +50,23 @@ export default function CreatePost() {
           onChange={(e) => setImageUrl(e.target.value)}
         />
 
-        <button type="submit">Create Post</button>
+        <select value={tag} onChange={(e) => setTag(e.target.value)}>
+          <option value="">Select a Tag</option>
+          <option value="Build">Build</option>
+          <option value="Review">Review</option>
+          <option value="Question">Question</option>
+          <option value="For Sale">For Sale</option>
+          <option value="Spotting">Spotting</option>
+        </select>
+
+        <input
+          required
+          placeholder="Set an owner key (needed to edit/delete)"
+          value={ownerKey}
+          onChange={(e) => setOwnerKey(e.target.value)}
+        />
+
+        <button type="submit">Post</button>
       </form>
     </div>
   );
