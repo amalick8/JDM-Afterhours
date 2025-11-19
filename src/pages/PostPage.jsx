@@ -1,4 +1,3 @@
-// PostPage.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -8,118 +7,117 @@ export default function PostPage() {
   const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
-  const [commentText, setCommentText] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
   async function loadPost() {
-    setLoading(true);
     const { data, error } = await supabase
       .from("posts")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (!error) setPost(data);
-    setLoading(false);
+    if (!error) {
+      setPost(data);
+      setComments(data.comments || []);
+    }
   }
 
-  useEffect(() => {
-    loadPost();
-  }, [id]);
-
-  // 🔥 Upvote
-  async function handleUpvote() {
-    await supabase
+  async function upvote() {
+    const { data } = await supabase
       .from("posts")
       .update({ upvotes: post.upvotes + 1 })
-      .eq("id", id);
+      .eq("id", id)
+      .select()
+      .single();
 
-    loadPost();
+    setPost(data);
   }
 
-  // ✏️ Add Comment
-  async function addComment() {
-    if (!commentText.trim()) return;
+  async function submitComment() {
+    if (newComment.trim() === "") return;
 
-    const newComments = [...post.comments, commentText];
+    const updated = [...comments, newComment];
 
-    await supabase
+    const { data } = await supabase
       .from("posts")
-      .update({ comments: newComments })
-      .eq("id", id);
+      .update({ comments: updated })
+      .eq("id", id)
+      .select()
+      .single();
 
-    setCommentText("");
-    loadPost();
+    setComments(updated);
+    setNewComment("");
   }
 
-  // ❌ Delete
   async function deletePost() {
     await supabase.from("posts").delete().eq("id", id);
     navigate("/");
   }
 
-  if (loading) return <p className="loading">Loading...</p>;
-  if (!post) return <p className="loading">Post not found.</p>;
+  useEffect(() => {
+    loadPost();
+  }, []);
+
+  if (!post) return <p>Loading...</p>;
 
   return (
-    <div className="page-box">
-      <div className="post-page-card">
+    <div className="post-page-box">
 
-        {/* TAG */}
-        {post.tag && <div className="tag-badge">{post.tag}</div>}
+      {/* IMAGE AT TOP */}
+      {post.image_url && (
+        <img src={post.image_url} alt="Post" className="post-image-top" />
+      )}
 
-        {/* TITLE */}
-        <h1 style={{ marginBottom: "10px" }}>{post.title}</h1>
+      {/* TAG */}
+      {post.tag && <div className="post-tag">{post.tag}</div>}
 
-        {/* IMAGE */}
-        {post.image_url && (
-          <img
-            className="post-page-img"
-            src={post.image_url}
-            alt="post"
-          />
-        )}
+      {/* TITLE */}
+      <h2 className="post-title">{post.title}</h2>
 
-        {/* META */}
-        <p className="meta">
-          Created: {new Date(post.created_at).toLocaleString()}
-        </p>
-        <p className="upvotes">🔥 {post.upvotes} upvotes</p>
+      {/* META */}
+      <p className="post-meta">
+        Created: {new Date(post.created_at).toLocaleString()}
+      </p>
 
-        {/* BUTTONS */}
-        <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
-          <button className="btn" onClick={handleUpvote}>Upvote</button>
-          <Link className="btn" to={`/edit/${post.id}`}>Edit</Link>
-          <button className="btn" onClick={deletePost} style={{ background: "#ff3b3b" }}>
-            Delete
-          </button>
-        </div>
+      <p className="post-meta">🔥 {post.upvotes} upvotes</p>
 
-        {/* COMMENTS */}
-        <div className="comment-box">
-          <h2>Comments</h2>
+      {/* ACTION BUTTONS */}
+      <div className="post-actions">
+        <button className="upvote-btn" onClick={upvote}>Upvote</button>
 
-          {post.comments.length === 0 && (
-            <p style={{ color: "var(--text-dim)" }}>No comments yet.</p>
-          )}
+        <Link to={`/edit/${id}`}>
+          <button className="edit-btn">Edit</button>
+        </Link>
 
-          {post.comments.map((c, i) => (
-            <div key={i} className="comment">{c}</div>
-          ))}
-
-          <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className="comment-input"
-              style={{ flex: 1 }}
-            />
-            <button className="btn" onClick={addComment}>Add</button>
-          </div>
-        </div>
+        <button className="delete-btn" onClick={deletePost}>Delete</button>
       </div>
+
+      {/* COMMENTS */}
+      <h3 className="comments-title">Comments</h3>
+
+      {comments.length === 0 && (
+        <p className="no-comments">No comments yet.</p>
+      )}
+
+      {comments.map((c, index) => (
+        <p key={index} className="comment-text">• {c}</p>
+      ))}
+
+      {/* COMMENT INPUT */}
+      <div className="comment-row">
+        <input
+          className="comment-box"
+          placeholder="Add a comment..."
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+        />
+
+        <button className="comment-submit" onClick={submitComment}>
+          Add
+        </button>
+      </div>
+
     </div>
   );
 }
