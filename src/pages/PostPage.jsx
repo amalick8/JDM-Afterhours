@@ -1,3 +1,4 @@
+// PostPage.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -5,166 +6,119 @@ import { supabase } from "../supabaseClient";
 export default function PostPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [post, setPost] = useState(null);
-  const [newComment, setNewComment] = useState("");
 
-  // --------------------------
-  // FETCH POST ON LOAD
-  // --------------------------
-  async function fetchPost() {
+  const [post, setPost] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  async function loadPost() {
+    setLoading(true);
     const { data, error } = await supabase
       .from("posts")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (error) console.error("Fetch error:", error);
-    else setPost(data);
+    if (!error) setPost(data);
+    setLoading(false);
   }
 
   useEffect(() => {
-    fetchPost();
-  }, []);
+    loadPost();
+  }, [id]);
 
-  if (!post) return <p>Loading...</p>;
-
-  // --------------------------
-  // HANDLE UPVOTE
-  // --------------------------
+  // 🔥 Upvote
   async function handleUpvote() {
-    const { data, error } = await supabase
+    await supabase
       .from("posts")
       .update({ upvotes: post.upvotes + 1 })
-      .eq("id", id)
-      .select()
-      .single();
+      .eq("id", id);
 
-    if (!error) setPost(data);
+    loadPost();
   }
 
-  // --------------------------
-  // ADD COMMENT
-  // --------------------------
-  async function handleAddComment() {
-    if (!newComment.trim()) return;
+  // ✏️ Add Comment
+  async function addComment() {
+    if (!commentText.trim()) return;
 
-    const updatedComments = [...post.comments, newComment];
+    const newComments = [...post.comments, commentText];
 
-    const { data, error } = await supabase
+    await supabase
       .from("posts")
-      .update({ comments: updatedComments })
-      .eq("id", id)
-      .select()
-      .single();
+      .update({ comments: newComments })
+      .eq("id", id);
 
-    if (!error) {
-      setPost(data);
-      setNewComment("");
-    }
+    setCommentText("");
+    loadPost();
   }
 
-  // --------------------------
-  // DELETE COMMENT
-  // --------------------------
-  async function handleDeleteComment(index) {
-    const updated = [...post.comments];
-    updated.splice(index, 1);
-
-    const { data, error } = await supabase
-      .from("posts")
-      .update({ comments: updated })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (!error) setPost(data);
-  }
-
-  // --------------------------
-  // DELETE POST
-  // --------------------------
-  async function handleDeletePost() {
-    const ok = confirm("Are you sure you want to delete this post?");
-    if (!ok) return;
-
+  // ❌ Delete
+  async function deletePost() {
     await supabase.from("posts").delete().eq("id", id);
     navigate("/");
   }
 
+  if (loading) return <p className="loading">Loading...</p>;
+  if (!post) return <p className="loading">Post not found.</p>;
+
   return (
-    <div className="post-page-wrapper fade-in">
+    <div className="page-box">
       <div className="post-page-card">
 
-        {/* TITLE */}
-        <h1 className="post-page-title">{post.title}</h1>
+        {/* TAG */}
+        {post.tag && <div className="tag-badge">{post.tag}</div>}
 
-        {/* IMAGE (FULLY FIXED) */}
+        {/* TITLE */}
+        <h1 style={{ marginBottom: "10px" }}>{post.title}</h1>
+
+        {/* IMAGE */}
         {post.image_url && (
           <img
-            src={post.image_url}
-            alt={post.title}
             className="post-page-img"
+            src={post.image_url}
+            alt="post"
           />
         )}
 
-        {/* CONTENT */}
-        {post.content && (
-          <p className="post-page-content">{post.content}</p>
-        )}
-
-        <p className="post-meta">
+        {/* META */}
+        <p className="meta">
           Created: {new Date(post.created_at).toLocaleString()}
         </p>
-
-        <p className="post-meta">Upvotes: {post.upvotes}</p>
+        <p className="upvotes">🔥 {post.upvotes} upvotes</p>
 
         {/* BUTTONS */}
-        <div className="post-page-buttons">
-          <button onClick={handleUpvote} className="btn upvote-btn">
-            Upvote
-          </button>
-
-          <Link to={`/edit/${post.id}`}>
-            <button className="btn edit-btn">Edit</button>
-          </Link>
-
-          <button onClick={handleDeletePost} className="btn delete-btn">
+        <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+          <button className="btn" onClick={handleUpvote}>Upvote</button>
+          <Link className="btn" to={`/edit/${post.id}`}>Edit</Link>
+          <button className="btn" onClick={deletePost} style={{ background: "#ff3b3b" }}>
             Delete
           </button>
         </div>
 
-        {/* COMMENTS SECTION */}
-        <h2 className="comments-title">Comments</h2>
+        {/* COMMENTS */}
+        <div className="comment-box">
+          <h2>Comments</h2>
 
-        <div className="comment-input-row">
-          <input
-            placeholder="Add a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="comment-input"
-          />
-          <button onClick={handleAddComment} className="btn add-comment-btn">
-            Add Comment
-          </button>
-        </div>
+          {post.comments.length === 0 && (
+            <p style={{ color: "var(--text-dim)" }}>No comments yet.</p>
+          )}
 
-        {/* COMMENTS LIST */}
-        <div className="comments-list">
-          {post.comments.length === 0 && <p>No comments yet.</p>}
-
-          {post.comments.map((c, index) => (
-            <div key={index} className="comment-card">
-              <p>{c}</p>
-              <button
-                className="btn delete-comment-btn"
-                onClick={() => handleDeleteComment(index)}
-              >
-                Delete
-              </button>
-            </div>
+          {post.comments.map((c, i) => (
+            <div key={i} className="comment">{c}</div>
           ))}
-        </div>
 
+          <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="comment-input"
+              style={{ flex: 1 }}
+            />
+            <button className="btn" onClick={addComment}>Add</button>
+          </div>
+        </div>
       </div>
     </div>
   );

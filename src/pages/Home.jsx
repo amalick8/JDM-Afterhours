@@ -8,6 +8,16 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("created_at");
   const [filterTag, setFilterTag] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(true);
+
+  // toggle modes
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }, [darkMode]);
 
   async function loadPosts() {
     setLoading(true);
@@ -37,6 +47,16 @@ export default function Home() {
 
   return (
     <div className="page-box">
+
+      {/* LIGHT/DARK MODE TOGGLE */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <button
+          className="mode-toggle"
+          onClick={() => setDarkMode(!darkMode)}
+        >
+          {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+        </button>
+      </div>
 
       <h1 className="header-title">JDM Afterhours</h1>
       <p className="header-sub">A Midnight Community for JDM Car Lovers</p>
@@ -68,17 +88,31 @@ export default function Home() {
         </select>
       </div>
 
-      {/* LOADING */}
       {loading && <p className="loading">Loading...</p>}
 
       {/* POST CARDS */}
       {posts.map((post) => (
         <Link key={post.id} to={`/post/${post.id}`}>
-          <div className="post-card">
+          <div className="post-card home-card">
+
+            {/* TAG */}
             {post.tag && <div className="tag-badge">{post.tag}</div>}
+
+            {/* FIXED IMAGE PREVIEW */}
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt="post"
+                className="home-preview-img"
+              />
+            )}
+
             <h3>{post.title}</h3>
-            <p className="meta">Posted: {new Date(post.created_at).toLocaleString()}</p>
+            <p className="meta">
+              Posted: {new Date(post.created_at).toLocaleString()}
+            </p>
             <p className="upvotes">🔥 {post.upvotes} upvotes</p>
+
           </div>
         </Link>
       ))}

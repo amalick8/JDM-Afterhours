@@ -4,10 +4,14 @@ export default function PostCard({ post }) {
   return (
     <Link
       to={`/post/${post.id}`}
-      style={{ textDecoration: "none", color: "inherit", display: "block" }}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "block"
+      }}
     >
       <div className="post-card fade-in">
-        
+
         {/* IMAGE */}
         {post.image_url && (
           <img
