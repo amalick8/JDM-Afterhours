@@ -12,9 +12,10 @@ The app is powered by **React + Supabase**, and styled with a clean neon theme i
 
 ---
 
-## 🌐 Live Demo  
-![Demo](https://jdmafterhours.netlify.app/)
+## 🌐 Live Demo
+👉 **https://jdmafterhours.netlify.app**
 
+Click the link above to view the full deployed version of the JDM Afterhours forum.
 
 ---
 
