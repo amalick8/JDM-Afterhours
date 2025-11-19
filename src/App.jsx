@@ -10,7 +10,6 @@ export default function App() {
   const [theme, setTheme] = useState("blue");
   const [mode, setMode] = useState("dark");
 
-  // Apply theme + mode to <body>
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
     document.body.setAttribute("data-mode", mode);
@@ -18,8 +17,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
+
+      {/* ALWAYS VISIBLE TOP CONTROLS */}
       <div className="top-controls">
-        {/* THEME SELECTOR */}
         <select
           className="theme-selector"
           value={theme}
@@ -31,7 +31,6 @@ export default function App() {
           <option value="green">Green</option>
         </select>
 
-        {/* DARK/LIGHT TOGGLE */}
         <button
           className="mode-toggle"
           onClick={() => setMode(mode === "dark" ? "light" : "dark")}

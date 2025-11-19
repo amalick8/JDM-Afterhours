@@ -1,74 +1,144 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 export default function PostPage() {
   const { id } = useParams();
-  const [post, setPost] = useState(null);
+  const navigate = useNavigate();
+
+  const [post, setPost] = useState({});
   const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
 
-  async function loadPost() {
-    const { data } = await supabase.from("posts").select().eq("id", id).single();
-    setPost(data);
-  }
-
-  async function addComment(e) {
-    e.preventDefault();
-
-    const updatedComments = [...post.comments, comment];
-
-    await supabase.from("posts")
-      .update({ comments: updatedComments })
-      .eq("id", id);
-
-    setComment("");
-    loadPost();
-  }
-
-  async function upvote() {
-    await supabase.from("posts")
-      .update({ upvotes: post.upvotes + 1 })
-      .eq("id", id);
-
-    loadPost();
-  }
-
-  async function deletePost() {
-    await supabase.from("posts").delete().eq("id", id);
-    window.location.href = "/";
-  }
-
+  // Fetch post
   useEffect(() => {
-    loadPost();
-  }, []);
+    async function fetchPost() {
+      const { data, error } = await supabase
+        .from("posts")
+        .select()
+        .eq("id", id)
+        .single();
 
-  if (!post) return <p>Loading...</p>;
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      setPost(data);
+    }
+
+    async function fetchComments() {
+      const { data } = await supabase
+        .from("comments")
+        .select()
+        .eq("post_id", id)
+        .order("created_at", { ascending: true });
+
+      setComments(data || []);
+    }
+
+    fetchPost();
+    fetchComments();
+  }, [id]);
+
+  // Upvote handler
+  async function handleUpvote() {
+    const { data, error } = await supabase
+      .from("posts")
+      .update({ upvotes: post.upvotes + 1 })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (!error) setPost(data);
+  }
+
+  // Delete handler
+  async function handleDelete() {
+    await supabase.from("posts").delete().eq("id", id);
+    navigate("/");
+  }
+
+  // Add comment
+  async function handleCommentSubmit() {
+    if (!comment.trim()) return;
+
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({
+        post_id: id,
+        text: comment,
+      })
+      .select()
+      .single();
+
+    if (!error) {
+      setComments([...comments, data]);
+      setComment("");
+    }
+  }
+
+  // ------------------------------------------------------------------
+  //                          BEAUTIFUL RETURN
+  // ------------------------------------------------------------------
 
   return (
-    <div className="post-page">
-      <h2>{post.title}</h2>
+    <div className="post-page-wrapper">
 
-      {post.image_url && <img src={post.image_url} className="post-img" />}
+      <div className="post-page-card">
 
-      <p>{post.content}</p>
+        <h1 className="post-title">{post.title}</h1>
 
-      <p>Upvotes: {post.upvotes}</p>
-      <button onClick={upvote}>Upvote</button>
+        {post.image_url && (
+          <img
+            src={post.image_url}
+            alt={post.title}
+            className="post-image"
+          />
+        )}
 
-      <a href={`/edit/${id}`} className="btn">Edit</a>
-      <button onClick={deletePost} className="btn danger">Delete</button>
+        <p className="post-description">{post.content}</p>
 
-      <h3>Comments</h3>
-      {post.comments.map((c, i) => <p key={i}>• {c}</p>)}
+        <p>
+          <strong>Upvotes:</strong> {post.upvotes}
+        </p>
 
-      <form onSubmit={addComment}>
-        <input
-          placeholder="Add a comment..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <button>Add Comment</button>
-      </form>
+        <div className="post-actions">
+          <button className="action-btn action-upvote" onClick={handleUpvote}>
+            Upvote
+          </button>
+          <button
+            className="action-btn action-edit"
+            onClick={() => navigate(`/edit/${id}`)}
+          >
+            Edit
+          </button>
+          <button className="action-btn action-delete" onClick={handleDelete}>
+            Delete
+          </button>
+        </div>
+
+        <h2 className="comments-header">Comments</h2>
+
+        <div className="comment-input-section">
+          <input
+            placeholder="Add a comment..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <button className="comment-add-btn" onClick={handleCommentSubmit}>
+            Add Comment
+          </button>
+        </div>
+
+        {comments.map((c) => (
+          <div key={c.id} className="comment-card">
+            <p className="comment-text">{c.text}</p>
+          </div>
+        ))}
+
+      </div>
+
     </div>
   );
 }

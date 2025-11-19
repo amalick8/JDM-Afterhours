@@ -18,8 +18,8 @@ export default function Home() {
       query = query.ilike("title", `%${searchTerm}%`);
     }
 
-    const { data, error } = await query;
-    if (!error) setPosts(data);
+    const { data } = await query;
+    setPosts(data || []);
   }
 
   useEffect(() => {
@@ -28,16 +28,18 @@ export default function Home() {
 
   return (
     <div className="page-wrapper">
-      <div className="home-center">
+
+      {/* EVERYTHING CENTERED */}
+      <div className="home-container">
 
         {/* Header */}
-        <h1 className="header-title">HobbyHub</h1>
+        <h1 className="main-title">HobbyHub</h1>
 
-        {/* Create New Post */}
+        {/* Create Post button */}
         <a href="/create" className="btn create-btn">Create New Post</a>
 
-        {/* Sort + Search */}
-        <div className="sort-center">
+        {/* Sort/Search */}
+        <div className="sort-wrapper">
           <SortAndSearchBar
             orderBy={orderBy}
             setOrderBy={setOrderBy}
@@ -47,13 +49,13 @@ export default function Home() {
         </div>
 
         {/* Posts */}
-        <div className="posts-list">
-          {posts.map((post) => (
+        <div className="posts-wrapper">
+          {posts.map(post => (
             <PostCard key={post.id} post={post} />
           ))}
 
           {posts.length === 0 && (
-            <p style={{ opacity: 0.7 }}>No posts yet.</p>
+            <p className="empty-msg">No posts yet. Create one!</p>
           )}
         </div>
 
